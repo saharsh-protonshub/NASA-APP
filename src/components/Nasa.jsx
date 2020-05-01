@@ -7,25 +7,38 @@ export default class Nasa extends React.Component {
         super(props)
         this.state = {
             asteroidID: '',
-            apiKey: 'tHTKinkGSQ9LDxOshTompbzh9ZKby81HESCDm4rS'
+            apiKey: 'tHTKinkGSQ9LDxOshTompbzh9ZKby81HESCDm4rS',
+            loader: false
         }
     }
     /**
      * function to get the details of the nasa
      */
     getNasaDetails() {
+        this.setState({
+            loader: true
+        });
         const url = 'https://api.nasa.gov/neo/rest/v1/neo/' + this.state.asteroidID + '?api_key=' + this.state.apiKey;
         api.getApi(url).then(response => {
             console.log(response);
             if (response === false) {
                 this.setState({
                     asteroidID: ''
-                })
+                });
+                this.setState({
+                    loader: false
+                });
                 return ;
             }
+            this.setState({
+                loader: false
+            });
             sessionStorage.setItem('nasa_data', JSON.stringify(response));
             this.props.history.push('NasaDetail');
         }).catch(error => {
+            this.setState({
+                loader: false
+            });
             console.error(error);
         })
     }
@@ -34,6 +47,9 @@ export default class Nasa extends React.Component {
      * function to get the random ID and call the api hit
      */
     randomAsteroid() {
+        this.setState({
+            loader: true
+        });
         const url = 'https://api.nasa.gov/neo/rest/v1/neo/browse?api_key=' + this.state.apiKey;
         /**
          * getting a random number b/w 0 to 20
@@ -43,10 +59,16 @@ export default class Nasa extends React.Component {
         api.getApi(url).then(response => {
             console.log(response);
             this.setState({
+                loader: false
+            });
+            this.setState({
                 asteroidID: response.near_earth_objects[randomNo].id
             });
             this.getNasaDetails();
         }).catch(error => {
+            this.setState({
+                loader: false
+            });
         });
     }
 
@@ -66,9 +88,14 @@ export default class Nasa extends React.Component {
                 }/>
                 <br/>
                 <div className="BtnWrapper">
-                <button type="submit" disabled={!this.state.asteroidID} onClick={this.getNasaDetails.bind(this)}>Submit</button>
-                <button type="submit" onClick={this.randomAsteroid.bind(this)}>Random Asteroid</button>
+                    <button type="submit" disabled={!this.state.asteroidID} onClick={this.getNasaDetails.bind(this)}>Submit</button>
+                    <button type="submit" onClick={this.randomAsteroid.bind(this)}>Random Asteroid</button>
                 </div>
+                {
+                    this.state.loader && (
+                        <p className="loader">Loading ...</p>
+                    )
+                }
             </section>  
         )
     }
